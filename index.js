@@ -5,9 +5,28 @@ function getMealWheelUsers(location) {
   console.log(`Called getMealWheelUsers`);
   console.log(location);
 
-  return JSON.stringify({
-    users: ["jorgan", "crapshack"],
-  });
+  const serverUrl = 'https://tsmealwheel.herokuapp.com';
+  const apiUrlFragment = '/api/v1/';
+  const path = serverUrl + apiUrlFragment + 'users';
+
+  const userNames = [];
+  return axios.get(path)
+    .then((usersResponse) => {
+      const users = usersResponse.data;
+      for (const user of users) {
+        console.log('userName:', user.userName)
+        userNames.push(user.userName);
+      }
+
+      return JSON.stringify({
+        user: userNames
+      });
+    });
+
+
+  // return JSON.stringify({
+  //   users: ["jorgan", "crapshack"],
+  // });
 }
 
 async function run_conversation() {
@@ -60,14 +79,14 @@ async function run_conversation() {
     console.log('args');
     console.log(args);
 
-    function_response = getMealWheelUsers(
+    function_response = await getMealWheelUsers(
       args.location,
     );
 
     console.log(function_response);
 
     return 'ok';
-    
+
   } catch (error) {
     console.error("Error:", error);
   }
