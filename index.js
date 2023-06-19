@@ -36,7 +36,7 @@ async function run_conversation() {
       {
         role: "user",
         content:
-          "What is the list of all mealWheel users in Boston?",
+          "What is the list of all mealWheel users?",
       },
     ],
     model: "gpt-3.5-turbo-0613",
@@ -52,7 +52,6 @@ async function run_conversation() {
               description: "The city, e.g. Boston",
             },
           },
-          // required: ["location"],
         },
       },
     ],
