@@ -47,10 +47,6 @@ async function run_conversation() {
         parameters: {
           type: "object",
           properties: {
-            location: {
-              type: "string",
-              description: "The city, e.g. Boston",
-            },
           },
         },
       },
