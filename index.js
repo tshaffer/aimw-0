@@ -1,9 +1,8 @@
 const axios = require("axios");
 require("dotenv").config();
 
-function getMealWheelUsers(location) {
+function getMealWheelUsers() {
   console.log(`Called getMealWheelUsers`);
-  console.log(location);
 
   const serverUrl = 'https://tsmealwheel.herokuapp.com';
   const apiUrlFragment = '/api/v1/';
@@ -22,11 +21,6 @@ function getMealWheelUsers(location) {
         user: userNames
       });
     });
-
-
-  // return JSON.stringify({
-  //   users: ["jorgan", "crapshack"],
-  // });
 }
 
 async function run_conversation() {
@@ -42,14 +36,14 @@ async function run_conversation() {
       {
         role: "user",
         content:
-          "What is the list of all mealWheel users in Boston",
+          "What is the list of all mealWheel users in Boston?",
       },
     ],
     model: "gpt-3.5-turbo-0613",
     functions: [
       {
         name: "getMealWheelUsers",
-        description: "List all mealWheel users in a given location",
+        description: "List all mealWheel users",
         parameters: {
           type: "object",
           properties: {
@@ -58,7 +52,7 @@ async function run_conversation() {
               description: "The city, e.g. Boston",
             },
           },
-          required: ["location"],
+          // required: ["location"],
         },
       },
     ],
@@ -79,9 +73,7 @@ async function run_conversation() {
     console.log('args');
     console.log(args);
 
-    function_response = await getMealWheelUsers(
-      args.location,
-    );
+    function_response = await getMealWheelUsers();
 
     console.log(function_response);
 
@@ -96,8 +88,6 @@ run_conversation()
   .then((response) => {
     console.log('final response');
     console.log(response);
-    // console.log('final message content');
-    // console.log(response.choices[0].message.content);
   })
   .catch((error) => {
     console.error("Error:", error);
