@@ -7,68 +7,68 @@ const configuration = new Configuration({
 });
 const openai = new OpenAIApi(configuration);
 
-function getPizzaList() {
-  return JSON.stringify({
-    pizzaList: ['sausage', 'pesto']
-  });
-}
-
-function getMealWheelUsers() {
-  console.log(`Called getMealWheelUsers`);
+function getMealWheelUserId(name) {
+  console.log(`Called getMealWheelUserId for user: `, name);
 
   const serverUrl = 'https://tsmealwheel.herokuapp.com';
   const apiUrlFragment = '/api/v1/';
   const path = serverUrl + apiUrlFragment + 'users';
 
-  const userNames = [];
   return axios.get(path)
     .then((usersResponse) => {
       const users = usersResponse.data;
       for (const user of users) {
         console.log('userName:', user.userName)
-        userNames.push(user.userName);
+        if (user.userName === name) {
+          return JSON.stringify({
+            id: user.id
+          });
+        }
       }
-
-      return JSON.stringify({
-        user: userNames
-      });
     });
 }
 
+function getMealWheelDishes(name) {
+  console.log('getMealWheelDishes for user: ', name);
+
+}
 async function run_conversation() {
 
   const messages = [
     {
       role: "user",
       content:
-        // "What is the list of all mealWheel users?",
-        // "What is the list of pizzas that Ted likes?",
-        "Get the list of pizzas that Ted likes, then list all mealWheel users.",
+        'What is the list of mealWheel dishes for the mealWheel user whose name is crapshack?',
     },
   ];
 
   const functions = [
     {
-      name: "getMealWheelUsers",
-      description: "List all mealWheel users",
-      parameters: {
-        type: "object",
-        properties: {
-        },
-      },
-    },
-    {
-      name: "getPizzaList",
-      description: "List all types of pizza that I like",
+      name: "getMealWheelUserId",
+      description: "Get a mealWheel user id given a mealWheel user name",
       parameters: {
         type: "object",
         properties: {
           name: {
             type: "string",
-            description: "The name of the person asking for a list of pizzas",
+            description: "The name of the mealWheel user",
           },
         },
         required: ["name"],
+      },
+    },
+    {
+      name: "getMealWheelDishes",
+      description: "List the mealWheel dishes given a mealWheel user id",
+      parameters: {
+        type: "object",
+        properties: {
+          userId: {
+            type: "string",
+            description: "The id of the mealWheel user",
+          },
+        },
+        required: ["id"],
       }
     }
   ];
@@ -97,11 +97,24 @@ async function run_conversation() {
   console.log('function_name');
   console.log(function_name);
 
+  if (function_name === 'getMealWheelUserId') {
+
+    let args = JSON.parse(response_message.function_call.arguments);
+    console.log('args');
+    console.log(args);
+    console.log(args.name);
+
+    const userId = await getMealWheelUserId(args.name);
+    console.log('mealWheelUserId: ');
+    console.log(userId);
+  }
+
+  return 'ok';
+
   let function_response = await getPizzaList();
   console.log('function_response');
   console.log(function_response);
 
-  // messages.push(function_response);
   messages.push(
     {
       role: 'function',
@@ -149,7 +162,7 @@ async function run_conversation() {
   console.log('messages');
   console.log(messages);
 
-    response = await openai.createChatCompletion({
+  response = await openai.createChatCompletion({
     model: "gpt-3.5-turbo-0613",
     messages,
     functions,
@@ -160,7 +173,7 @@ async function run_conversation() {
   console.log('response keys');
   console.log(Object.keys(response));
 
-    responseData = response.data;
+  responseData = response.data;
   console.log('responseData keys');
   console.log(Object.keys(responseData));
 
