@@ -8,9 +8,9 @@ const configuration = new Configuration({
 const openai = new OpenAIApi(configuration);
 
 function getPizzaList() {
-  return {
+  return JSON.stringify({
     pizzaList: ['sausage', 'pesto']
-  }
+  });
 }
 
 function getMealWheelUsers() {
@@ -81,81 +81,126 @@ async function run_conversation() {
     // "auto"
   });
   console.log('return from openai.createChatCompletion');
+
   console.log('response keys');
   console.log(Object.keys(response));
+
   let responseData = response.data;
   console.log('responseData keys');
   console.log(Object.keys(responseData));
+
   let response_message = responseData["choices"][0]["message"]
   console.log('response_message');
   console.log(response_message);
 
-//   try {
+  let function_name = response_message["function_call"]["name"];
+  console.log('function_name');
+  console.log(function_name);
 
-//     const function_name = response_message.function_call.name;
-//     console.log('function_name from OpenAI: ', function_name);
+  let function_response = await getPizzaList();
+  console.log('function_response');
+  console.log(function_response);
 
-//     let args = JSON.parse(response_message.function_call.arguments);
-//     console.log('args');
-//     console.log(args);
+  // messages.push(function_response);
+  messages.push(
+    {
+      role: 'function',
+      name: function_name,
+      content: function_response,
+    }
+  );
+  console.log('messages');
+  console.log(messages);
 
-//     console.log('invoke function');
-//     switch (function_name) {
-//       case 'getMealWheelUsers':
-//         function_response = await getMealWheelUsers();
-//         break;
-//       case 'getPizzaList':
-//         function_response = getPizzaList();
-//         break;
-//     }
-//     console.log(function_response);
+  response = await openai.createChatCompletion({
+    model: "gpt-3.5-turbo-0613",
+    messages,
+    functions,
+  });
 
-//     messages.push(response_message)  // extend conversation with assistant's reply
-//     messages.push(
-//       {
-//         "role": "function",
-//         "name": function_name,
-//         "content": function_response,
-//       }
-//     )
-//     // extend conversation with function response
-//     const second_response = openai.ChatCompletion.create(
-//       model = "gpt-3.5-turbo-0613",
-//       messages = messages,
-//     )
-//     // get a new response from GPT where it can see the function response
-//     console.log(second_response);
+  console.log('return from openai.createChatCompletion');
+
+  console.log('response keys');
+  console.log(Object.keys(response));
+
+  responseData = response.data;
+  console.log('responseData keys');
+  console.log(Object.keys(responseData));
+
+  response_message = responseData["choices"][0]["message"]
+  console.log('response_message');
+  console.log(response_message);
+
+  // function_name = response_message["function_call"]["name"];
+  // console.log('function_name');
+  // console.log(function_name);
+
+  //   try {
+
+  //     const function_name = response_message.function_call.name;
+  //     console.log('function_name from OpenAI: ', function_name);
+
+  //     let args = JSON.parse(response_message.function_call.arguments);
+  //     console.log('args');
+  //     console.log(args);
+
+  //     console.log('invoke function');
+  //     switch (function_name) {
+  //       case 'getMealWheelUsers':
+  //         function_response = await getMealWheelUsers();
+  //         break;
+  //       case 'getPizzaList':
+  //         function_response = getPizzaList();
+  //         break;
+  //     }
+  //     console.log(function_response);
+
+  //     messages.push(response_message)  // extend conversation with assistant's reply
+  //     messages.push(
+  //       {
+  //         "role": "function",
+  //         "name": function_name,
+  //         "content": function_response,
+  //       }
+  //     )
+  //     // extend conversation with function response
+  //     const second_response = openai.ChatCompletion.create(
+  //       model = "gpt-3.5-turbo-0613",
+  //       messages = messages,
+  //     )
+  //     // get a new response from GPT where it can see the function response
+  //     console.log(second_response);
 
 
-//     // data.messages.push(response_message);
+  //     // data.messages.push(response_message);
 
-//     // data.messages.push({
-//     //   role: "function",
-//     //   name: function_name,
-//     //   content: function_response,
-//     // });
+  //     // data.messages.push({
+  //     //   role: "function",
+  //     //   name: function_name,
+  //     //   content: function_response,
+  //     // });
 
-//     /*
-//   data: '{"messages":[{"role":"user","content":"Get the list of pizzas that Ted likes, then list all mealWheel users."},{"role":"function","name":"getPizzaList","content":{"pizzaList":["sausage","pesto"]}}],"model":"gpt-3.5-turbo-0613","functions":[{"name":"getMealWheelUsers","description":"List all mealWheel users","parameters":{"type":"object","properties":{}}},{"name":"getPizzaList","description":"List all types of pizza that I like","parameters":{"type":"object","properties":{"name":{"type":"string","description":"The name of the person asking for a list of pizzas"}},"required":["name"]}}],"function_call":"auto"}'
-// },
-//     */
-//     // console.log('Make openAI call post getMealWheelUsers');
+  //     /*
+  //   data: '{"messages":[{"role":"user","content":"Get the list of pizzas that Ted likes, then list all mealWheel users."},{"role":"function","name":"getPizzaList","content":{"pizzaList":["sausage","pesto"]}}],"model":"gpt-3.5-turbo-0613","functions":[{"name":"getMealWheelUsers","description":"List all mealWheel users","parameters":{"type":"object","properties":{}}},{"name":"getPizzaList","description":"List all types of pizza that I like","parameters":{"type":"object","properties":{"name":{"type":"string","description":"The name of the person asking for a list of pizzas"}},"required":["name"]}}],"function_call":"auto"}'
+  // },
+  //     */
+  //     // console.log('Make openAI call post getMealWheelUsers');
 
-//     // response = await axios.post(baseURL, data, { headers });
-//     // response = response.data;
-//     // console.log('return from request to OpenAI');
-//     // console.log(response);
+  //     // response = await axios.post(baseURL, data, { headers });
+  //     // response = response.data;
+  //     // console.log('return from request to OpenAI');
+  //     // console.log(response);
 
-//     // return response;
+  //     // return response;
 
-//     // requestCount++;
-  
+  //     // requestCount++;
 
-//     return 'ok';
 
-// } catch (error) {
-//   console.error("Error:", error);
-// }
+  //     return 'ok';
+
+  // } catch (error) {
+  //   console.error("Error:", error);
+  // }
 }
 
 run_conversation()
@@ -164,5 +209,7 @@ run_conversation()
     // console.log(response.choices[0].message.content);
   })
   .catch((error) => {
-    console.error("Error:", error);
+    console.log('Failblog');
+    console.log(Object.keys(error));
+    // console.error("Error:", error);
   });
