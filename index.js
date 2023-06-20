@@ -7,7 +7,7 @@ const configuration = new Configuration({
 });
 const openai = new OpenAIApi(configuration);
 
-function getMealWheelUserId(name) {
+async function getMealWheelUserId(name) {
   console.log(`Called getMealWheelUserId for user: `, name);
 
   const serverUrl = 'https://tsmealwheel.herokuapp.com';
@@ -28,10 +28,12 @@ function getMealWheelUserId(name) {
     });
 }
 
-function getMealWheelDishes(name) {
-  console.log('getMealWheelDishes for user: ', name);
+async function getMealWheelDishes(userId) {
+  console.log('getMealWheelDishes for user id: ', userId);
 
+  return [];
 }
+
 async function run_conversation() {
 
   const messages = [
@@ -141,85 +143,23 @@ async function run_conversation() {
     console.log('function_name');
     console.log(function_name);
   
+    let function_args = response_message["function_call"]["arguments"];
+    // console.log('function_args');
+    // console.log(response_message["function_call"]["arguments"]);
+    // console.log(function_args);
+    // console.log(typeof function_args);
+
+    let x = JSON.parse(function_args);
+    // console.log(x);
+    // console.log(x.userId);
+    const userId = x.userId;
+    console.log('userId: ', userId);
+
+    return 'poo';
   
   } else {
     return 'unexpected function name: ', function_name;
   }
-
-  return 'ok';
-
-  let function_response = await getPizzaList();
-  console.log('function_response');
-  console.log(function_response);
-
-  messages.push(
-    {
-      role: 'function',
-      name: function_name,
-      content: function_response,
-    }
-  );
-  console.log('messages');
-  console.log(messages);
-
-  response = await openai.createChatCompletion({
-    model: "gpt-3.5-turbo-0613",
-    messages,
-    functions,
-  });
-
-  console.log('return from openai.createChatCompletion');
-
-  console.log('response keys');
-  console.log(Object.keys(response));
-
-  responseData = response.data;
-  console.log('responseData keys');
-  console.log(Object.keys(responseData));
-
-  response_message = responseData["choices"][0]["message"]
-  console.log('response_message');
-  console.log(response_message);
-
-  function_name = response_message["function_call"]["name"];
-  console.log('function_name');
-  console.log(function_name);
-
-  function_response = await getMealWheelUsers();
-  console.log('function_response');
-  console.log(function_response);
-
-  messages.push(
-    {
-      role: 'function',
-      name: function_name,
-      content: function_response,
-    }
-  );
-  console.log('messages');
-  console.log(messages);
-
-  response = await openai.createChatCompletion({
-    model: "gpt-3.5-turbo-0613",
-    messages,
-    functions,
-  });
-
-  console.log('return from openai.createChatCompletion');
-
-  console.log('response keys');
-  console.log(Object.keys(response));
-
-  responseData = response.data;
-  console.log('responseData keys');
-  console.log(Object.keys(responseData));
-
-  response_message = responseData["choices"][0]["message"]
-  console.log('response_message');
-  console.log(response_message);
-
-  return response_message;
-
 }
 
 run_conversation()
@@ -229,6 +169,7 @@ run_conversation()
   })
   .catch((error) => {
     console.log('Failblog');
-    console.log(Object.keys(error));
+    console.log(error);
+    // console.log(Object.keys(error));
     // console.error("Error:", error);
   });
