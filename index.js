@@ -68,11 +68,70 @@ async function run_conversation() {
     console.log('args');
     console.log(args);
 
+    /*
+        response_message = response["choices"][0]["message"]
+
+        function_response = fuction_to_call(
+            location=function_args.get("location"),
+            unit=function_args.get("unit"),
+        )
+
+        # Step 4: send the info on the function call and function response to GPT
+        messages.append(response_message)  # extend conversation with assistant's reply
+        messages.append(
+            {
+                "role": "function",
+                "name": function_name,
+                "content": function_response,
+            }
+        )  # extend conversation with function response
+        second_response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo-0613",
+            messages=messages,
+        )     */
     function_response = await getMealWheelUsers();
 
     console.log(function_response);
 
-    return 'ok';
+    data.messages.push(message);
+
+    data.messages.push({
+      role: "function",
+      name: function_name,
+      content: function_response,
+    });
+
+    console.log('Make openAI call post getMealWheelUsers');
+    // let keys = Object.keys(data);
+    // console.log(keys);
+    // console.log(data.messages);
+    // console.log(data.model);
+    // console.log(data.functions);
+    // console.log(data.function_call);
+
+    data.function_call = 'none';
+
+    response = await axios.post(baseURL, data, { headers });
+    response = response.data;
+    console.log('return from request to OpenAI');
+    console.log(response);
+    console.log(response.data);
+
+
+    // Makes the final API request after the conversation is finished.
+    // console.log('Make final api request');
+    // keys = Object.keys(data);
+    // console.log(keys);
+    // console.log(data.messages);
+    // console.log(data.model);
+    // console.log(data.functions);
+    // console.log(data.function_call);
+    // response = await axios.post(baseURL, data, { headers });
+    // response = response.data;
+    // console.log('response data');
+    // console.log(response);
+
+    return response;
 
   } catch (error) {
     console.error("Error:", error);
@@ -83,6 +142,7 @@ run_conversation()
   .then((response) => {
     console.log('final response');
     console.log(response);
+    console.log(response.choices[0].message.content);
   })
   .catch((error) => {
     console.error("Error:", error);
