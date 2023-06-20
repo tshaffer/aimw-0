@@ -1,6 +1,12 @@
 const axios = require("axios");
 require("dotenv").config();
 
+function getPizzaList() {
+  return {
+    pizzaList: ['sausage', 'pesto']
+  }
+}
+
 function getMealWheelUsers() {
   console.log(`Called getMealWheelUsers`);
 
@@ -36,7 +42,8 @@ async function run_conversation() {
       {
         role: "user",
         content:
-          "What is the list of all mealWheel users?",
+          // "What is the list of all mealWheel users?",
+          "What is the list of pizzas that Ted likes?",
       },
     ],
     model: "gpt-3.5-turbo-0613",
@@ -50,11 +57,26 @@ async function run_conversation() {
           },
         },
       },
+      {
+        name: "getPizzaList",
+        description: "List all types of pizza that I like",
+        parameters: {
+          type: "object",
+          properties: {
+            name: {
+              type: "string",
+              description: "The name of the person asking for a list of pizzas",
+            },
+          },
+          required: ["name"],
+        }
+      }
     ],
     function_call: "auto",
   };
 
   try {
+    console.log('Make initial request');
     let response = await axios.post(baseURL, data, { headers });
     response = response.data;
     console.log('Response: ');
@@ -68,26 +90,35 @@ async function run_conversation() {
     console.log('args');
     console.log(args);
 
-    function_response = await getMealWheelUsers();
+    switch (function_name) {
+      case 'getMealWheelUsers':
+        function_response = await getMealWheelUsers();
+        break;
+      case 'getPizzaList':
+        function_response = getPizzaList();
+        break;
+    }
 
     console.log(function_response);
 
-    data.messages.push(message);
+    // data.messages.push(message);
 
-    data.messages.push({
-      role: "function",
-      name: function_name,
-      content: function_response,
-    });
+    // data.messages.push({
+    //   role: "function",
+    //   name: function_name,
+    //   content: function_response,
+    // });
 
-    console.log('Make openAI call post getMealWheelUsers');
+    // console.log('Make openAI call post getMealWheelUsers');
 
-    response = await axios.post(baseURL, data, { headers });
-    response = response.data;
-    console.log('return from request to OpenAI');
-    console.log(response);
+    // response = await axios.post(baseURL, data, { headers });
+    // response = response.data;
+    // console.log('return from request to OpenAI');
+    // console.log(response);
 
-    return response;
+    // return response;
+
+    return 'ok';
 
   } catch (error) {
     console.error("Error:", error);
@@ -97,7 +128,7 @@ async function run_conversation() {
 run_conversation()
   .then((response) => {
     console.log('natural language final response');
-    console.log(response.choices[0].message.content);
+    // console.log(response.choices[0].message.content);
   })
   .catch((error) => {
     console.error("Error:", error);
