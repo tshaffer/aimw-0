@@ -81,10 +81,14 @@ async function run_conversation() {
     // "auto"
   });
   console.log('return from openai.createChatCompletion');
+  console.log('response keys');
   console.log(Object.keys(response));
-  // response_message = response["choices"][0]["message"]
-  // console.log('response_message');
-  // console.log(response_message);
+  let responseData = response.data;
+  console.log('responseData keys');
+  console.log(Object.keys(responseData));
+  let response_message = responseData["choices"][0]["message"]
+  console.log('response_message');
+  console.log(response_message);
 
 //   try {
 
