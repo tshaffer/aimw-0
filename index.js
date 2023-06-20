@@ -131,9 +131,44 @@ async function run_conversation() {
   console.log('response_message');
   console.log(response_message);
 
-  // function_name = response_message["function_call"]["name"];
-  // console.log('function_name');
-  // console.log(function_name);
+  function_name = response_message["function_call"]["name"];
+  console.log('function_name');
+  console.log(function_name);
+
+  function_response = await getMealWheelUsers();
+  console.log('function_response');
+  console.log(function_response);
+
+  messages.push(
+    {
+      role: 'function',
+      name: function_name,
+      content: function_response,
+    }
+  );
+  console.log('messages');
+  console.log(messages);
+
+    response = await openai.createChatCompletion({
+    model: "gpt-3.5-turbo-0613",
+    messages,
+    functions,
+  });
+
+  console.log('return from openai.createChatCompletion');
+
+  console.log('response keys');
+  console.log(Object.keys(response));
+
+    responseData = response.data;
+  console.log('responseData keys');
+  console.log(Object.keys(responseData));
+
+  response_message = responseData["choices"][0]["message"]
+  console.log('response_message');
+  console.log(response_message);
+
+  return response_message;
 
   //   try {
 
@@ -204,9 +239,9 @@ async function run_conversation() {
 }
 
 run_conversation()
-  .then((response) => {
+  .then((response_message) => {
     console.log('natural language final response');
-    // console.log(response.choices[0].message.content);
+    console.log(response_message.content);
   })
   .catch((error) => {
     console.log('Failblog');
