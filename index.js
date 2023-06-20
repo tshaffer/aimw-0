@@ -1,5 +1,11 @@
-const axios = require("axios");
-require("dotenv").config();
+import { Configuration, OpenAIApi } from "openai";
+import axios from 'axios';
+import 'dotenv/config';
+
+const configuration = new Configuration({
+  apiKey: process.env.OPENAI_API_KEY,
+});
+const openai = new OpenAIApi(configuration);
 
 function getPizzaList() {
   return {
@@ -31,98 +37,121 @@ function getMealWheelUsers() {
 
 async function run_conversation() {
 
-  const baseURL = "https://api.openai.com/v1/chat/completions";
-  const headers = {
-    "Content-Type": "application/json",
-    Authorization: "Bearer " + process.env.OPENAI_API_KEY,
-  };
+  const messages = [
+    {
+      role: "user",
+      content:
+        // "What is the list of all mealWheel users?",
+        // "What is the list of pizzas that Ted likes?",
+        "Get the list of pizzas that Ted likes, then list all mealWheel users.",
+    },
+  ];
 
-  let data = {
-    messages: [
-      {
-        role: "user",
-        content:
-          // "What is the list of all mealWheel users?",
-          "What is the list of pizzas that Ted likes?",
-      },
-    ],
-    model: "gpt-3.5-turbo-0613",
-    functions: [
-      {
-        name: "getMealWheelUsers",
-        description: "List all mealWheel users",
-        parameters: {
-          type: "object",
-          properties: {
-          },
+  const functions = [
+    {
+      name: "getMealWheelUsers",
+      description: "List all mealWheel users",
+      parameters: {
+        type: "object",
+        properties: {
         },
       },
-      {
-        name: "getPizzaList",
-        description: "List all types of pizza that I like",
-        parameters: {
-          type: "object",
-          properties: {
-            name: {
-              type: "string",
-              description: "The name of the person asking for a list of pizzas",
-            },
+    },
+    {
+      name: "getPizzaList",
+      description: "List all types of pizza that I like",
+      parameters: {
+        type: "object",
+        properties: {
+          name: {
+            type: "string",
+            description: "The name of the person asking for a list of pizzas",
           },
-          required: ["name"],
-        }
+        },
+        required: ["name"],
       }
-    ],
-    function_call: "auto",
-  };
-
-  try {
-    console.log('Make initial request');
-    let response = await axios.post(baseURL, data, { headers });
-    response = response.data;
-    console.log('Response: ');
-    console.log(response);
-
-    let message = response.choices[0].message;
-    const function_name = message.function_call.name;
-    console.log('function_name from OpenAI: ', function_name);
-
-    let args = JSON.parse(message.function_call.arguments);
-    console.log('args');
-    console.log(args);
-
-    switch (function_name) {
-      case 'getMealWheelUsers':
-        function_response = await getMealWheelUsers();
-        break;
-      case 'getPizzaList':
-        function_response = getPizzaList();
-        break;
     }
+  ];
 
-    console.log(function_response);
+  console.log('invoke open ai.createChatCompletion');
+  let response = await openai.createChatCompletion({
+    model: "gpt-3.5-turbo-0613",
+    messages,
+    functions,
+    // "auto"
+  });
+  console.log('return from openai.createChatCompletion');
+  console.log(Object.keys(response));
+  // response_message = response["choices"][0]["message"]
+  // console.log('response_message');
+  // console.log(response_message);
 
-    // data.messages.push(message);
+//   try {
 
-    // data.messages.push({
-    //   role: "function",
-    //   name: function_name,
-    //   content: function_response,
-    // });
+//     const function_name = response_message.function_call.name;
+//     console.log('function_name from OpenAI: ', function_name);
 
-    // console.log('Make openAI call post getMealWheelUsers');
+//     let args = JSON.parse(response_message.function_call.arguments);
+//     console.log('args');
+//     console.log(args);
 
-    // response = await axios.post(baseURL, data, { headers });
-    // response = response.data;
-    // console.log('return from request to OpenAI');
-    // console.log(response);
+//     console.log('invoke function');
+//     switch (function_name) {
+//       case 'getMealWheelUsers':
+//         function_response = await getMealWheelUsers();
+//         break;
+//       case 'getPizzaList':
+//         function_response = getPizzaList();
+//         break;
+//     }
+//     console.log(function_response);
 
-    // return response;
+//     messages.push(response_message)  // extend conversation with assistant's reply
+//     messages.push(
+//       {
+//         "role": "function",
+//         "name": function_name,
+//         "content": function_response,
+//       }
+//     )
+//     // extend conversation with function response
+//     const second_response = openai.ChatCompletion.create(
+//       model = "gpt-3.5-turbo-0613",
+//       messages = messages,
+//     )
+//     // get a new response from GPT where it can see the function response
+//     console.log(second_response);
 
-    return 'ok';
 
-  } catch (error) {
-    console.error("Error:", error);
-  }
+//     // data.messages.push(response_message);
+
+//     // data.messages.push({
+//     //   role: "function",
+//     //   name: function_name,
+//     //   content: function_response,
+//     // });
+
+//     /*
+//   data: '{"messages":[{"role":"user","content":"Get the list of pizzas that Ted likes, then list all mealWheel users."},{"role":"function","name":"getPizzaList","content":{"pizzaList":["sausage","pesto"]}}],"model":"gpt-3.5-turbo-0613","functions":[{"name":"getMealWheelUsers","description":"List all mealWheel users","parameters":{"type":"object","properties":{}}},{"name":"getPizzaList","description":"List all types of pizza that I like","parameters":{"type":"object","properties":{"name":{"type":"string","description":"The name of the person asking for a list of pizzas"}},"required":["name"]}}],"function_call":"auto"}'
+// },
+//     */
+//     // console.log('Make openAI call post getMealWheelUsers');
+
+//     // response = await axios.post(baseURL, data, { headers });
+//     // response = response.data;
+//     // console.log('return from request to OpenAI');
+//     // console.log(response);
+
+//     // return response;
+
+//     // requestCount++;
+  
+
+//     return 'ok';
+
+// } catch (error) {
+//   console.error("Error:", error);
+// }
 }
 
 run_conversation()
