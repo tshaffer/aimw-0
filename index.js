@@ -109,7 +109,7 @@ async function run_conversation() {
     // console.log(data.functions);
     // console.log(data.function_call);
 
-    data.function_call = 'none';
+    // data.function_call = 'none';
 
     response = await axios.post(baseURL, data, { headers });
     response = response.data;
