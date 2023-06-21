@@ -31,7 +31,19 @@ async function getMealWheelUserId(name) {
 async function getMealWheelDishes(userId) {
   console.log('getMealWheelDishes for user id: ', userId);
 
-  return [];
+  const serverUrl = 'https://tsmealwheel.herokuapp.com';
+  const apiUrlFragment = '/api/v1/';
+  const path = serverUrl + apiUrlFragment + 'dishes?id=' + userId;
+
+  return axios.get(path)
+    .then((dishesResponse) => {
+      const dishEntitiesFromServer = dishesResponse.data;
+      console.log('number of dishes: ', dishEntitiesFromServer.length);
+      // console.log(typeof dishEntitiesFromServer);
+      // console.log(dishEntitiesFromServer);
+      return [];
+    });
+
 }
 
 async function run_conversation() {
@@ -125,24 +137,24 @@ async function run_conversation() {
       messages,
       functions,
     });
-  
+
     console.log('return from openai.createChatCompletion');
 
     console.log('response keys');
     console.log(Object.keys(response));
-  
+
     responseData = response.data;
     console.log('responseData keys');
     console.log(Object.keys(responseData));
-  
+
     response_message = responseData["choices"][0]["message"]
     console.log('response_message');
     console.log(response_message);
-  
+
     function_name = response_message["function_call"]["name"];
     console.log('function_name');
     console.log(function_name);
-  
+
     let function_args = response_message["function_call"]["arguments"];
     // console.log('function_args');
     // console.log(response_message["function_call"]["arguments"]);
@@ -154,9 +166,12 @@ async function run_conversation() {
     // console.log(x.userId);
     const userId = x.userId;
     console.log('userId: ', userId);
+    console.log(typeof userId);
+
+    const dishes = await getMealWheelDishes(userId);
 
     return 'poo';
-  
+
   } else {
     return 'unexpected function name: ', function_name;
   }
